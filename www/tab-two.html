@@ -1,15 +1,16 @@
 <md-tabs md-align-tabs="bottom" style="min-height:375px; width:700px">
   <md-tab label="Instructions">
     <md-content class="md-padding">
-<div>
+<div class="paragraph">
 In Kubernetes <i>Replication Controllers</i> provide scalability and reliability.  Their job is to replicate
 each layer in your system so that if a failure occurs in one instance of your application, other instances
 are running to replaced the failed instance while Kubernetes restarts the server.  Replication Controllers
 also provide a "size" knob which makes scaling to provide additional capacity easy.
 </div>
-<div>
+<div class="paragraph">
 Replication Controllers use a Pod definition as the blueprint and add a desired number of replicas, as well
 as a <i>replicaSelector</i> that identifies the set of Pods that are managed by the Replication Controller.
+</div>
     </md-content>
   </md-tab>
   <md-tab label="YAML">

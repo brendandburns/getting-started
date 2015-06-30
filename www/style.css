@@ -1,3 +1,18 @@
+.type {
+  font-family: inconsolata, courier;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.indent {
+  margin-left:20px;
+  margin-top: 10px;
+}
+
+.paragraph {
+  margin-bottom: 10px;
+}
+
 .steps {
   text-align: left;
 }

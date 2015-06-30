@@ -36,30 +36,35 @@
       <div layout="column" flex id="content">
         <md-content layout="column" flex class="md-padding">            
           <md-tabs md-border-bottom style="min-height:500px" md-selected="data.selected">
-	    <md-tab label="1 Container Pods">
+	    <md-tab label="Container Pods">
 	      <md-content class="md-padding">
 		<div ng-include="'tab-one.html'"></div>
 	      </md-content>
 	    </md-tab>
-	    <md-tab label="2: Replication">
+	    <md-tab label="Replication">
 	      <md-content class="md-padding">
 		<div ng-include="'tab-two.html'"></div>
 	      </md-content>
 	    </md-tab>
-	    <md-tab label="3: Service Load Balancers">
+	    <md-tab label="Service Load Balancers">
 	      <md-content class="md-padding">
 		<div ng-include="'tab-three.html'"></div>
 	      </md-content>
 	    </md-tab>
-	    <md-tab label="4: Summary">
+	    <md-tab label="Overview">
 	      <md-content class="md-padding">
 		<div ng-include="'tab-four.html'"></div>
+	      </md-content>
+	    </md-tab>
+	    <md-tab label="Run Example">
+	      <md-content class="md-padding">
+		<div ng-include="'tab-five.html'"></div>
 	      </md-content>
 	    </md-tab>
 	  </md-tabs>
 	  <div layout="row" layout-align="end center">
 	    <md-button class="md-primary" ng-disabled="data.selected==0" ng-click="data.selected=data.selected-1">Previous</md-button>
-	    <md-button class="md-primary" ng-disabled="data.selected>2" ng-click="data.selected=data.selected+1">Next</md-button>
+	    <md-button class="md-primary" ng-disabled="data.selected>3" ng-click="data.selected=data.selected+1">Next</md-button>
 	  </div>
 	</md-content>
       </div>
