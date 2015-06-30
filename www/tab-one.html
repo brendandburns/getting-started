@@ -1,0 +1,34 @@
+<md-tabs md-align-tabs="bottom" style="min-height:375px; width:700px">
+  <md-tab label="Instructions">
+    <md-content class="md-padding">
+<div>
+The basic element in the Kubernetes API is a <i>Pod</i>.  A Pod groups one or more containers with filesystems and kernel 
+namespaces.  A Pod is the basic building block of all applications built in Kubernetes.
+
+We will begin our exploration of the API by creating a Pod.  This first Pod will simply combine an instance of a node.js
+server, and a container that synchronizes the file system with a git repository.
+</div>
+    </md-content>
+  </md-tab>
+  <md-tab label="YAML">
+    <md-content class="md-padding">
+      <pre>
+apiVersion: v1
+kind: Pod
+# information about the pod itself
+metadata:
+  name: nginx-pod
+  labels:
+    role: frontend
+# specification for the pod
+spec:
+  containers:
+  # specification for the first container in the pod
+  - name: nginx-container
+    image: nginx
+    ports:
+    - containerPort: 80
+      </pre>
+    </md-content>
+  </md-tab>
+</md-tabs>
