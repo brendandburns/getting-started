@@ -1,9 +1,21 @@
 <div class="paragraph indent">
 <div class="paragraph">
-  <h4>Select Cluster</h4>
-    <md-select placeholder="Cluster" ng-model="data.cluster">
-      <md-option ng-repeat="cluster in data.clusters" value="cluster.name">{{cluster.name}}</md-option>
-    </md-select>
+  <md-input-container>
+    <label>Cloud Project</label>
+    <input ng-model="controller.project">
+  </md-input-container>
+  <md-select placeholder="Zone"
+	     ng-model="controller.zone">
+    <md-option ng-repeat="zone in controller.zones"
+	       value="{{zone}}">{{zone}}</md-option>
+  </md-select>
+  <md-select placeholder="Cluster"
+	     ng-change="controller.SelectCluster(data.cluster)"
+	     ng-model="data.cluster"
+	     md-on-open="controller.LoadClusters()">
+    <md-option ng-repeat="cluster in controller.clusters"
+	       value="{{cluster.name}}">{{cluster.name}}</md-option>
+  </md-select>
 </div>
 <div>
   <h4>Deploy Application</h4>
