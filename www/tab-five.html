@@ -1,27 +1,41 @@
-<div class="paragraph indent">
-<div class="paragraph">
-  <md-input-container>
-    <label>Cloud Project</label>
-    <input ng-model="controller.project">
-  </md-input-container>
-  <md-select placeholder="Zone"
-	     ng-model="controller.zone">
-    <md-option ng-repeat="zone in controller.zones"
-	       value="{{zone}}">{{zone}}</md-option>
-  </md-select>
-  <md-select placeholder="Cluster"
-	     ng-change="controller.SelectCluster(data.cluster)"
-	     ng-model="data.cluster"
-	     md-on-open="controller.LoadClusters()">
-    <md-option ng-repeat="cluster in controller.clusters"
-	       value="{{cluster.name}}">{{cluster.name}}</md-option>
-  </md-select>
-</div>
+<md-content layout-padding layout="row" layout-sm="column">
+  <div style="display: inline-block" class="indent paragraph">
+    <md-input-container>
+      <label>Cloud Project</label>
+      <input ng-model="controller.project">
+    </md-input-container>
+    <md-input-container>
+      <md-select placeholder="Zone"
+		 ng-model="controller.zone">
+        <md-option ng-repeat="zone in controller.zones"
+		   value="{{zone}}">{{zone}}</md-option>
+      </md-select>
+    </md-input-container>
+    <md-input-container>  
+      <md-select placeholder="Cluster"
+		 ng-change="controller.SelectCluster(controller.cluster)"
+		 ng-model="controller.cluster"
+		 md-on-open="controller.LoadClusters()">
+	<md-option ng-repeat="cluster in controller.clusters"
+		   value="{{cluster.name}}">{{cluster.name}}</md-option>
+      </md-select>
+    </md-input-container>
+    <md-input-container ng-show="controller.cluster == 'Create a new GKE Cluster'">
+      <label>Cluster Name</label>
+      <input ng-model="controller.clusterName">
+    </md-input-container>
+  </div>
+</md-content>
 <div>
-  <h4>Deploy Application</h4>
+  <md-content class="md-padding">
+    <md-button class="md-raised md-primary"
+	       ng-disabled="!controller.readyToDeploy()"
+	       ng-click="controller.deploy()">Deploy</md-button>
+    <md-button class="md-raised md-warn"
+	       ng-disabled="true"
+	       ng-click="controller.delete()">Delete</md-button>
+  </md-content>
 </div>
 <div>
   <h4>View Application</h4>
 </div>
-</div>
-

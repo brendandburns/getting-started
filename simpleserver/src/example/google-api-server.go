@@ -61,7 +61,7 @@ func SendTokenRequest(config *oauth2.Config) string {
 	return authURL
 }
 
-func exchangeToken(ctx context.Context, config *oauth2.Config, code string) *oauth2.Token { 
+func exchangeToken(ctx context.Context, config *oauth2.Config, code string) *oauth2.Token {
 	log.Printf("Got code: %s", code)
 
 	token, err := config.Exchange(ctx, code)
