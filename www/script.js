@@ -106,10 +106,7 @@ StarterApp.prototype.LoadClusters = function() {
 		this.clusters[cluster.name] = {"name": cluster.name};
 	    }.bind(this));
 	}.bind(this)).
-	error(function(data, status) {
-	    console.log("Error!");
-	    console.log(status);
-	});
+        error(this.httpError);
 };
 
 StarterApp.prototype.SelectCluster = function(cluster) {
@@ -117,40 +114,104 @@ StarterApp.prototype.SelectCluster = function(cluster) {
 	success(function(data, status) {
 	    console.log(data);
 	}).
-	error(function(data, status) {
-	    console.log("Error!");
-	    console.log(status);
-	});
+        error(this.httpError);
+};
+
+StarterApp.prototype.httpError = function(data, status) {
+    console.log("HTTP Error");
+    console.log(data);
+    console.log(status);
 };
 
 StarterApp.prototype.deploy = function() {
-    this.http.post("/api/v1/namespaces/default/replicationcontrollers", this.getReplicationController()).
+    var promise = this.createReplicationController();
+    promise.then(function() {
+        return this.createService();
+    }.bind(this));
+    return promise;
+};
+
+StarterApp.prototype.createReplicationController = function() {
+    return this.http.post("/api/v1/namespaces/default/replicationcontrollers", this.getReplicationController()).
 	success(function(data, status) {
 	    console.log(data);
 	}.bind(this)).
-	error(function(data, status) {
-	    console.log("Error!");
-	    console.log(data);
-	    console.log(status);
-	});
-    this.http.post("/api/v1/namespaces/default/services", this.getService()).
+        error(this.httpError);
+};
+
+StarterApp.prototype.createService = function() {
+    return this.http.post("/api/v1/namespaces/default/services", this.getService()).
 	success(function(data, status) {
 	    console.log(data);
 	}.bind(this)).
-	error(function(data, status) {
-	    console.log("Error!");
-	    console.log(data);
-	    console.log(status);
-	});
+	error(this.httpError);
 };
 
 StarterApp.prototype.readyToDeploy = function() {
-    return this.project && this.zone && this.cluster;
+    return this.project && this.zone && this.cluster && !this.deployed();
 };
 
-app.controller('AppCtrl', ['$scope', '$mdSidenav', '$http', function($scope, $mdSidenav, $http){
+StarterApp.prototype.deployed = function() {
+    return this.replicationController || this.service || (this.pods && this.pods.items.length > 0);
+};
+
+StarterApp.prototype.delete = function() {
+    this.http.delete("/api/v1/namespaces/default/replicationcontrollers/" + this.replicationController.metadata.name).
+        success(function(data, status) {
+	    this.replicationController = null;
+	}.bind(this)).
+        error(this.httpError);
+    this.http.delete("/api/v1/namespaces/default/services/" + this.service.metadata.name).
+        success(function(data, status) {
+	    this.service = null;
+	}.bind(this)).
+        error(this.httpError);
+    angular.forEach(this.pods.items, function(pod) {
+	    this.http.delete("/api/v1/namespaces/default/pods/" + pod.metadata.name).
+		success(function(data, status) {
+			this.replicationController = null;
+		    }.bind(this)).
+		error(this.httpError);
+	}.bind(this));
+    // TODO Combine the promises and error check.
+    this.pods = null;
+};
+
+var makeLabelSelector = function(replicationController) {
+    var result = [];
+    angular.forEach(replicationController.spec.selector, function(value, key) {
+	    result.push(key + "=" + value);
+	})
+    return result.join();
+};
+
+StarterApp.prototype.refresh = function() {
+    var rc = this.getReplicationController();
+    var svc = this.getService();
+
+    this.http.get("/api/v1/namespaces/default/replicationcontrollers/" + rc.metadata.name).
+        success(function(data, status) {
+	    this.replicationController = data;
+	}.bind(this)).
+        error(this.httpError);
+
+    this.http.get("/api/v1/namespaces/default/services/" + svc.metadata.name).
+        success(function(data, status) {
+	    this.service = data;
+	}.bind(this)).
+        error(this.httpError);
+
+    this.http.get("/api/v1/namespaces/default/pods?labelSelector=" + makeLabelSelector(rc)).
+        success(function(data, status) {
+	    this.pods = data;
+	}.bind(this)).
+        error(this.httpError);
+};
+
+app.controller('AppCtrl', ['$scope', '$mdSidenav', '$http', '$interval', function($scope, $mdSidenav, $http, $interval){
     $scope.data = {
 	"selected": 0,
     };
     $scope.controller = new StarterApp($http);
+    $interval($scope.controller.refresh.bind($scope.controller), 1000)
 }]);

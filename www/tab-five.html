@@ -1,41 +1,55 @@
-<md-content layout-padding layout="row" layout-sm="column">
-  <div style="display: inline-block" class="indent paragraph">
-    <md-input-container>
-      <label>Cloud Project</label>
-      <input ng-model="controller.project">
-    </md-input-container>
-    <md-input-container>
-      <md-select placeholder="Zone"
-		 ng-model="controller.zone">
-        <md-option ng-repeat="zone in controller.zones"
-		   value="{{zone}}">{{zone}}</md-option>
-      </md-select>
-    </md-input-container>
-    <md-input-container>  
-      <md-select placeholder="Cluster"
-		 ng-change="controller.SelectCluster(controller.cluster)"
-		 ng-model="controller.cluster"
-		 md-on-open="controller.LoadClusters()">
-	<md-option ng-repeat="cluster in controller.clusters"
-		   value="{{cluster.name}}">{{cluster.name}}</md-option>
-      </md-select>
-    </md-input-container>
-    <md-input-container ng-show="controller.cluster == 'Create a new GKE Cluster'">
-      <label>Cluster Name</label>
-      <input ng-model="controller.clusterName">
-    </md-input-container>
+<div layout="row">
+  <div>
+    <md-content layout-padding layout="row" layout-sm="column">
+      <div style="display: inline-block" class="indent paragraph">
+	<md-input-container>
+	  <label>Google Cloud Project ID</label>
+	  <input ng-model="controller.project">
+	</md-input-container>
+	<md-input-container>
+	  <md-select placeholder="Google Cloud Zone"
+		     ng-model="controller.zone">
+            <md-option ng-repeat="zone in controller.zones"
+		       value="{{zone}}">{{zone}}</md-option>
+	  </md-select>
+	</md-input-container>
+	<md-input-container>  
+	  <md-select placeholder="GKE Cluster Name"
+		     ng-change="controller.SelectCluster(controller.cluster)"
+		     ng-model="controller.cluster"
+		     md-on-open="controller.LoadClusters()">
+	    <md-option ng-repeat="cluster in controller.clusters"
+		       value="{{cluster.name}}">{{cluster.name}}</md-option>
+	  </md-select>
+	</md-input-container>
+	<md-input-container ng-show="controller.cluster == 'Create a new GKE Cluster'">
+	  <label>Cluster Name</label>
+	  <input ng-model="controller.clusterName">
+	</md-input-container>
+      </div>
+    </md-content>
+    <div>
+      <md-content class="md-padding">
+	<md-button class="md-raised md-primary"
+		   ng-disabled="!controller.readyToDeploy()"
+		   ng-click="controller.deploy()">Deploy</md-button>
+	<md-button class="md-raised md-warn"
+		   ng-disabled="!controller.deployed()"
+		   ng-click="controller.delete()">Delete</md-button>
+      </md-content>
+    </div>
   </div>
-</md-content>
-<div>
-  <md-content class="md-padding">
-    <md-button class="md-raised md-primary"
-	       ng-disabled="!controller.readyToDeploy()"
-	       ng-click="controller.deploy()">Deploy</md-button>
-    <md-button class="md-raised md-warn"
-	       ng-disabled="true"
-	       ng-click="controller.delete()">Delete</md-button>
-  </md-content>
-</div>
-<div>
-  <h4>View Application</h4>
+  <div ng-show="controller.deployed()">
+    <md-content layout-padding layout="column">
+      <div style="display: inline-block" class="indent paragraph">
+	<div><a ng-href="http://{{controller.service.status.loadBalancer.ingress[0].ip}}">{{controller.service.metadata.name}}</a></div>
+	<div>
+	  {{controller.replicationController.metadata.name}}:
+	  <ul>
+	    <li ng-repeat="pod in controller.pods.items"><a href="/api/v1/proxy/namespaces/default/pods/{{pod.metadata.name}}">{{pod.metadata.name}}</a> - {{pod.status.phase}}</li>
+	  </ul>
+	</div>
+      </div>
+    </md-content>
+  </div>
 </div>
