@@ -16,5 +16,11 @@ Linux | [gke-launcher](https://storage.googleapis.com/gke-getting-started/0.1/li
 ./gke-launcher
 ```
 
+You may need to make the binary executable:
+
+```
+chmod a+x gke-launcher
+```
+
 ### Visit the server
 [http://localhost:8080](http://localhost:8080)
