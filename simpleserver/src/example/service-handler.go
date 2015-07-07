@@ -16,10 +16,10 @@ import (
 
 var (
 	clientID     = flag.String("client-id", "", "OAuth 2.0 Client ID.  If non-empty, overrides --clientid_file")
-	clientIDFile = flag.String("client-id-file", "clientid.dat",
+	clientIDFile = flag.String("client-id-file", "",
 		"Name of a file containing just the project's OAuth 2.0 Client ID from https://developers.google.com/console.")
 	clientSecret     = flag.String("secret", "", "OAuth 2.0 Client Secret.  If non-empty, overrides --secret_file")
-	clientSecretFile = flag.String("secret-file", "clientsecret.dat",
+	clientSecretFile = flag.String("secret-file", "",
 		"Name of a file containing just the project's OAuth 2.0 Client Secret from https://developers.google.com/console")
 )
 
@@ -80,16 +80,32 @@ func (s *ServiceHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			res.Write([]byte(response))
 			return
 		}
+		req.URL.Query().Del("code")
+		req.URL.Query().Del("state")
+		http.Redirect(res, req, req.URL.String(), 302)
+		return
 	}
 	s.Delegate.ServeHTTP(res, req)
 }
 
+func loadSecretAndID() (secret string, id string) {
+	if len(*clientID) != 0 || len(*clientIDFile) != 0 {
+		id = loadFileOrString(*clientID, *clientIDFile)
+	} else {
+		id = "255964991331-b0l3n9c5pqc0u0ijtniv8vls226d3d5j.apps.googleusercontent.com"
+	}
+	if len(*clientSecret) != 0 || len(*clientSecretFile) != 0 {
+		secret = loadFileOrString(*clientSecret, *clientSecretFile)
+	} else {
+		secret = "BWm6fPAY2gS1jaRT-Xn2y-uT"
+	}
+	return
+}
+
 func (s *ServiceHandler) authHandler(res http.ResponseWriter, req *http.Request) {
-	id := loadFileOrString(*clientID, *clientIDFile)
-	secret := loadFileOrString(*clientSecret, *clientSecretFile)
-
+	secret, id := loadSecretAndID()
 	config, _ := NewClientConfigAndContext(id, secret)
-
+	
 	_, port, err := net.SplitHostPort(req.Host)
 	if err != nil {
 		res.WriteHeader(500)
@@ -111,8 +127,7 @@ func (s *ServiceHandler) tokenHandler(res http.ResponseWriter, req *http.Request
 		return errors.New("Invalid code")
 	}
 
-	id := loadFileOrString(*clientID, *clientIDFile)
-	secret := loadFileOrString(*clientSecret, *clientSecretFile)
+	secret, id := loadSecretAndID()
 	config, ctx := NewClientConfigAndContext(id, secret)
 
 	_, port, err := net.SplitHostPort(req.Host)
@@ -215,4 +230,20 @@ func (s *ServiceHandler) SelectDirector(req *http.Request) {
 	req.URL.Host = s.selectedCluster.Endpoint
 	req.URL.Scheme = "https"
 	req.SetBasicAuth(s.selectedCluster.MasterAuth.Username, s.selectedCluster.MasterAuth.Password)
+}
+
+func StaticFileHandler(res http.ResponseWriter, req *http.Request) {
+	glog.Infof("Looking for: %s", req.URL.Path)
+	file := req.URL.Path[1:]
+	if len(file) == 0 {
+		file = "index.html"
+	}
+	asset, err := Asset(file)
+	if err != nil {
+		res.WriteHeader(500)
+		res.Write([]byte(err.Error()))
+		return
+	}
+	res.WriteHeader(200)
+	res.Write(asset)
 }

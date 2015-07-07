@@ -1,7 +1,8 @@
 <div layout="row">
   <div>
     <md-content layout-padding layout="row" layout-sm="column">
-      <div style="display: inline-block" class="indent paragraph">
+      <div style="display: inline-block" class="md-padding">
+      <h2 class="md-title">Cluster Information</h2>
 	<md-input-container>
 	  <label>Google Cloud Project ID</label>
 	  <input ng-model="controller.project">
@@ -22,10 +23,20 @@
 		       value="{{cluster.name}}">{{cluster.name}}</md-option>
 	  </md-select>
 	</md-input-container>
-	<md-input-container ng-show="controller.cluster == 'Create a new GKE Cluster'">
+	<div ng-show="controller.cluster == 'Create a new GKE Cluster'">
+	<md-input-container>
 	  <label>Cluster Name</label>
 	  <input ng-model="controller.clusterName">
 	</md-input-container>
+	<div layout-align="center center" layout="column">
+	  <md-button class="md-raised"
+		     ng-disabled="!controller.readyToCreate()"
+		     ng-click="controller.createCluster()">Create Cluster</md-button>
+        </div>
+      </div>
+      <div ng-show="controller.clusterDeploying()" layout="row" layout-align="center center">
+	<span>Your cluster is being created</span>
+	<md-progress-circular md-mode="indeterminate" md-diameter="18"></md-progress-circular>
       </div>
     </md-content>
     <div>
@@ -39,16 +50,23 @@
       </md-content>
     </div>
   </div>
-  <div ng-show="controller.deployed()">
-    <md-content layout-padding layout="column">
-      <div style="display: inline-block" class="indent paragraph">
-	<div><a ng-href="http://{{controller.service.status.loadBalancer.ingress[0].ip}}">{{controller.service.metadata.name}}</a></div>
+  <div ng-show="controller.deployed()" class="md-padding">
+    <md-content layout="row">
+      <div class="left-margin" layout="column">
+      <h2 class="md-title">Load Balanced Service</h2>
+      <div class="md-padding md-whiteframe-z1">
+	<b><a ng-href="http://{{controller.service.status.loadBalancer.ingress[0].ip}}">{{controller.service.metadata.name}}</a></b>
+	<div>{{controller.service.status.loadBalancer.ingress[0].ip}}</div>
+      </div>
+      </div>
+      <div class="left-margin-lg right-margin paragraph" layout="column">
+      <h2 class="md-title">Replicas</h2>
+      <div class="md-padding md-whiteframe-z1" ng-repeat="pod in controller.pods.items">
 	<div>
-	  {{controller.replicationController.metadata.name}}:
-	  <ul>
-	    <li ng-repeat="pod in controller.pods.items"><a href="/api/v1/proxy/namespaces/default/pods/{{pod.metadata.name}}">{{pod.metadata.name}}</a> - {{pod.status.phase}}</li>
-	  </ul>
+	  <b><a ng-href="/api/v1/proxy/namespaces/default/pods/{{pod.metadata.name}}">{{pod.metadata.name}}</a></b>
 	</div>
+	<div>{{pod.status.phase}}</div>
+      </div>
       </div>
     </md-content>
   </div>

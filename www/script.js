@@ -112,8 +112,8 @@ StarterApp.prototype.LoadClusters = function() {
 StarterApp.prototype.SelectCluster = function(cluster) {
     return this.http.get('/select?project=' + this.project + '&zone=' + this.zone + '&cluster=' + cluster).
 	success(function(data, status) {
-	    console.log(data);
-	}).
+	    this.selectedCluster = data;
+	}.bind(this)).
         error(this.httpError);
 };
 
@@ -131,10 +131,25 @@ StarterApp.prototype.deploy = function() {
     return promise;
 };
 
+StarterApp.prototype.createCluster = function() {
+    this.selectedCluster = null;
+    return this.http.get("/create?project=" + this.project + "&zone=" + this.zone + "&cluster=" + this.clusterName).
+        success(function(data, status) {
+		this.deploying = true;
+		this.selectedCluster = {
+		    "name": this.clusterName,
+		    "status": "PENDING",
+		};
+		this.clusters[this.clusterName] = this.selectedCluster;
+		this.cluster = this.clusterName;
+	    }.bind(this)).
+        error(this.httpError);
+};
+
 StarterApp.prototype.createReplicationController = function() {
     return this.http.post("/api/v1/namespaces/default/replicationcontrollers", this.getReplicationController()).
 	success(function(data, status) {
-	    console.log(data);
+	    // TODO Toast here
 	}.bind(this)).
         error(this.httpError);
 };
@@ -142,13 +157,21 @@ StarterApp.prototype.createReplicationController = function() {
 StarterApp.prototype.createService = function() {
     return this.http.post("/api/v1/namespaces/default/services", this.getService()).
 	success(function(data, status) {
-	    console.log(data);
+	    // TODO Toast here
 	}.bind(this)).
 	error(this.httpError);
 };
 
 StarterApp.prototype.readyToDeploy = function() {
-    return this.project && this.zone && this.cluster && !this.deployed();
+    return this.project && this.zone && this.cluster && !this.deployed() && this.selectedCluster && this.selectedCluster.status == "RUNNING";
+};
+
+StarterApp.prototype.readyToCreate = function() {
+    return this.project && this.zone;
+};
+
+StarterApp.prototype.clusterDeploying = function() {
+    return this.selectedCluster && this.selectedCluster.status != "RUNNING";
 };
 
 StarterApp.prototype.deployed = function() {
@@ -188,24 +211,29 @@ var makeLabelSelector = function(replicationController) {
 StarterApp.prototype.refresh = function() {
     var rc = this.getReplicationController();
     var svc = this.getService();
+    if (this.readyToDeploy()) {
+	this.http.get("/api/v1/namespaces/default/replicationcontrollers/" + rc.metadata.name).
+	    success(function(data, status) {
+	        this.replicationController = data;
+	    }.bind(this)).
+	    error(this.httpError);
 
-    this.http.get("/api/v1/namespaces/default/replicationcontrollers/" + rc.metadata.name).
-        success(function(data, status) {
-	    this.replicationController = data;
-	}.bind(this)).
-        error(this.httpError);
+	this.http.get("/api/v1/namespaces/default/services/" + svc.metadata.name).
+	    success(function(data, status) {
+	        this.service = data;
+	    }.bind(this)).
+	    error(this.httpError);
 
-    this.http.get("/api/v1/namespaces/default/services/" + svc.metadata.name).
-        success(function(data, status) {
-	    this.service = data;
-	}.bind(this)).
-        error(this.httpError);
-
-    this.http.get("/api/v1/namespaces/default/pods?labelSelector=" + makeLabelSelector(rc)).
-        success(function(data, status) {
-	    this.pods = data;
-	}.bind(this)).
-        error(this.httpError);
+	this.http.get("/api/v1/namespaces/default/pods?labelSelector=" + makeLabelSelector(rc)).
+	    success(function(data, status) {
+	        this.pods = data;
+	    }.bind(this)).
+	    error(this.httpError);
+    }
+    if (this.selectedCluster) {
+	this.SelectCluster(this.selectedCluster.name);
+	this.deploying = this.selectedCluster.status != "RUNNING";
+    }
 };
 
 app.controller('AppCtrl', ['$scope', '$mdSidenav', '$http', '$interval', function($scope, $mdSidenav, $http, $interval){
@@ -213,5 +241,5 @@ app.controller('AppCtrl', ['$scope', '$mdSidenav', '$http', '$interval', functio
 	"selected": 0,
     };
     $scope.controller = new StarterApp($http);
-    $interval($scope.controller.refresh.bind($scope.controller), 1000)
+    $interval($scope.controller.refresh.bind($scope.controller), 2500)
 }]);
