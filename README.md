@@ -16,4 +16,4 @@ Linux | coming soon...
 ```
 
 ### Visit the server
-http://localhost:8080
+[http://localhost:8080](http://localhost:8080)
