@@ -1,4 +1,8 @@
-var app = angular.module('StarterApp', ['ngMaterial']);
+var app = angular.module('StarterApp', ['ngMaterial'])
+    .config(function($mdThemingProvider) {
+	    $mdThemingProvider.theme('default')
+	    .accentPalette('blue');
+	});
 
 var StarterApp = function(http) {
     this.http = http;

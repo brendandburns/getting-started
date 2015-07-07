@@ -227,9 +227,11 @@ func (s *ServiceHandler) SelectClusterHandler(res http.ResponseWriter, req *http
 }
 
 func (s *ServiceHandler) SelectDirector(req *http.Request) {
-	req.URL.Host = s.selectedCluster.Endpoint
-	req.URL.Scheme = "https"
-	req.SetBasicAuth(s.selectedCluster.MasterAuth.Username, s.selectedCluster.MasterAuth.Password)
+     	if s.selectedCluster != nil {
+		req.URL.Host = s.selectedCluster.Endpoint
+		req.URL.Scheme = "https"
+		req.SetBasicAuth(s.selectedCluster.MasterAuth.Username, s.selectedCluster.MasterAuth.Password)
+	}
 }
 
 func StaticFileHandler(res http.ResponseWriter, req *http.Request) {

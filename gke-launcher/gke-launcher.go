@@ -19,10 +19,11 @@ func main() {
 	flag.Parse()
 
 	mux := http.NewServeMux()
-	//mux.Handle("/", http.FileServer(http.Dir(*dir)))
-	//mux.Handle("/", example.StaticFileHandler())
-	mux.HandleFunc("/", example.StaticFileHandler)
-
+	if len(*dir) > 0 {
+           mux.Handle("/", http.FileServer(http.Dir(*dir)))
+	} else {
+           mux.HandleFunc("/", example.StaticFileHandler)
+        }
 	serviceHandler := &example.ServiceHandler{Delegate: mux}
 
 	mux.HandleFunc("/list", serviceHandler.ListClusterHandler)
